@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한글 획순 배우기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a2e;
+  --ink-light: #3a3a5c;
+  --paper: #f7f4ee;
+  --paper-dark: #ede9e0;
+  --accent: #c84b31;
+  --accent-light: #e8745c;
+  --gold: #b8860b;
+  --stroke1: #3B6DD8;
+  --stroke2: #D85A30;
+  --stroke3: #1D9E75;
+  --stroke4: #9B5EA2;
+  --stroke5: #BA7517;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ── START SCREEN ── */
+#startScreen {
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  position: relative;
+}
+
+.bg-pattern {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden; opacity: 0.04;
+}
+.bg-pattern span {
+  position: absolute; font-size: 120px; font-family: 'Noto Serif KR', serif;
+  color: var(--ink); user-select: none; animation: float 8s ease-in-out infinite;
+}
+.bg-pattern span:nth-child(1) { top:5%; left:3%; animation-delay:0s; }
+.bg-pattern span:nth-child(2) { top:15%; right:5%; animation-delay:1.2s; }
+.bg-pattern span:nth-child(3) { bottom:20%; left:8%; animation-delay:2.4s; }
+.bg-pattern span:nth-child(4) { bottom:8%; right:10%; animation-delay:0.8s; }
+.bg-pattern span:nth-child(5) { top:50%; left:50%; animation-delay:1.8s; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+
+.start-content {
+  text-align: center; z-index: 1; padding: 2rem;
+  animation: fadeUp 0.8s ease both;
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:none} }
+
+.start-logo {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(4rem, 12vw, 8rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--ink) 0%, var(--accent) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+.start-sub {
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  color: var(--ink-light); letter-spacing: 0.15em;
+  font-weight: 300; margin-bottom: 3rem;
+}
+.start-divider {
+  width: 48px; height: 2px; background: var(--accent);
+  margin: 0 auto 3rem; border-radius: 1px;
+}
+
+.mode-cards {
+  display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;
+}
+.mode-card {
+  width: 200px; padding: 2rem 1.5rem;
+  background: white; border: 1px solid rgba(26,26,46,0.1);
+  border-radius: 12px; cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  text-align: center;
+}
+.mode-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(26,26,46,0.12);
+  border-color: var(--accent);
+}
+.mode-icon {
+  font-size: 2.5rem; margin-bottom: 1rem; display: block;
+  font-family: 'Noto Serif KR', serif;
+}
+.mode-title {
+  font-size: 1rem; font-weight: 500; color: var(--ink);
+  margin-bottom: 0.5rem;
+}
+.mode-desc { font-size: 0.8rem; color: var(--ink-light); line-height: 1.5; }
+
+/* ── NAV ── */
+.top-nav {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid rgba(26,26,46,0.1);
+  background: white; position: sticky; top: 0; z-index: 100;
+}
+.nav-back {
+  background: none; border: none; cursor: pointer;
+  font-size: 0.85rem; color: var(--ink-light);
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 6px;
+  transition: background 0.15s;
+}
+.nav-back:hover { background: var(--paper); }
+.nav-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 1rem; font-weight: 600; color: var(--ink);
+}
+.nav-tabs {
+  margin-left: auto; display: flex; gap: 4px;
+}
+.nav-tab {
+  padding: 6px 16px; border-radius: 6px;
+  border: 1px solid transparent; cursor: pointer;
+  font-size: 0.85rem; background: none; color: var(--ink-light);
+  transition: all 0.15s;
+}
+.nav-tab.active {
+  background: var(--ink); color: white; border-color: var(--ink);
+}
+
+/* ── EXPLAIN SCREEN ── */
+#explainScreen .screen-body {
+  display: grid; grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 57px);
+}
+
+.jamo-sidebar {
+  border-right: 1px solid rgba(26,26,46,0.1);
+  padding: 1.5rem 1rem; overflow-y: auto;
+  background: white;
+}
+.sidebar-section-title {
+  font-size: 0.7rem; letter-spacing: 0.12em; font-weight: 500;
+  color: var(--ink-light); text-transform: uppercase;
+  padding: 0 0.5rem; margin: 0 0 0.5rem;
+}
+.sidebar-section-title:not(:first-child) { margin-top: 1.5rem; }
+.jamo-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+  margin-bottom: 0.5rem;
+}
+.jamo-pill {
+  aspect-ratio: 1; border-radius: 6px;
+  border: 1px solid rgba(26,26,46,0.1);
+  background: var(--paper); cursor: pointer;
+  font-size: 1.1rem; font-family: 'Noto Serif KR', serif;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.jamo-pill:hover { border-color: var(--accent); background: #fff5f3; }
+.jamo-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.explain-main { padding: 2.5rem 3rem; overflow-y: auto; }
+.explain-jamo-hero {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 7rem; line-height: 1; color: var(--ink);
+  margin-bottom: 0.25rem;
+}
+.explain-jamo-name {
+  font-size: 1.2rem; color: var(--ink-light);
+  margin-bottom: 2rem; font-weight: 300;
+}
+.explain-grid {
+  display: grid; grid-template-columns: 280px 1fr; gap: 2.5rem;
+  align-items: start;
+}
+.explain-canvas-wrap { position: relative; }
+.explain-canvas-label {
+  font-size: 0.75rem; color: var(--ink-light); letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 0.75rem; font-weight: 500;
+}
+#explainCanvas {
+  border-radius: 10px; display: block;
+  border: 1px solid rgba(26,26,46,0.1);
+}
+.explain-controls {
+  display: flex; gap: 8px; margin-top: 0.75rem;
+}
+.explain-controls button {
+  padding: 7px 16px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
+  border: 1px solid rgba(26,26,46,0.2); background: white;
+  color: var(--ink); transition: all 0.15s;
+}
+.explain-controls button:hover { background: var(--ink); color: white; }
+
+.explain-info h3 {
+  font-family: 'Noto Serif KR', serif; font-size: 1rem;
+  color: var(--ink); margin-bottom: 0.75rem;
+}
+.explain-description {
+  font-size: 0.875rem; color: var(--ink-light); line-height: 1.8;
+  background: var(--paper); border-left: 3px solid var(--accent);
+  padding: 1rem 1.25rem; border-radius: 0 6px 6px 0;
+  margin-bottom: 1.5rem;
+}
+.stroke-list { display: flex; flex-direction: column; gap: 8px; }
+.stroke-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px;
+  background: white; border: 1px solid rgba(26,26,46,0.08);
+}
+.stroke-num {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; color: white; flex-shrink: 0;
+}
+.stroke-dir { font-size: 0.8rem; color: var(--ink); }
+.stroke-arrow { font-size: 1rem; margin-left: auto; color: var(--ink-light); }
+
+/* ── PRACTICE SCREEN ── */
+#practiceScreen .screen-body {
+  display: grid; grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 57px);
+}
+
+.practice-main { padding: 2rem; overflow-y: auto; }
+.practice-header { margin-bottom: 1.5rem; }
+.practice-jamo-hero {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 5rem; line-height: 1; color: var(--ink); display: inline-block;
+  margin-right: 1rem;
+}
+.practice-jamo-name { font-size: 1rem; color: var(--ink-light); }
+.practice-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+.p-panel {
+  background: white; border: 1px solid rgba(26,26,46,0.1);
+  border-radius: 10px; padding: 1.25rem;
+}
+.p-panel-title {
+  font-size: 0.75rem; color: var(--ink-light); font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1rem;
+}
+.p-canvas { border-radius: 8px; display: block; cursor: crosshair; }
+.p-controls { display: flex; gap: 6px; margin-top: 0.75rem; }
+.p-controls button {
+  flex: 1; padding: 7px; border-radius: 6px;
+  border: 1px solid rgba(26,26,46,0.2); background: white;
+  font-size: 0.8rem; cursor: pointer; color: var(--ink);
+  transition: all 0.15s;
+}
+.p-controls button:hover { background: var(--paper); }
+.p-controls button.danger { color: var(--accent); border-color: rgba(200,75,49,0.3); }
+.p-controls button.danger:hover { background: #fff5f3; }
+.p-controls button.primary { background: var(--ink); color: white; border-color: var(--ink); }
+.p-controls button.primary:hover { background: var(--ink-light); }
+
+.stroke-dots { display: flex; gap: 6px; margin-top: 0.75rem; flex-wrap: wrap; }
+.s-dot {
+  padding: 3px 10px; font-size: 11px; border-radius: 99px;
+  border: 1px solid rgba(26,26,46,0.15); color: var(--ink-light);
+  background: var(--paper);
+}
+.s-dot.done { background: #e8f5ee; border-color: #1D9E75; color: #1D9E75; }
+.s-dot.curr { background: #fff5f3; border-color: var(--accent); color: var(--accent); }
+
+.score-section { margin-top: 1rem; }
+.score-num {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 2.5rem; font-weight: 600; line-height: 1;
+}
+.score-bar-track {
+  height: 6px; background: var(--paper-dark); border-radius: 3px;
+  margin: 0.5rem 0 0.25rem; overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%; border-radius: 3px;
+  transition: width 0.6s cubic-bezier(.4,0,.2,1);
+}
+.score-breakdown { display: flex; flex-direction: column; gap: 6px; margin-top: 0.75rem; }
+.score-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.78rem;
+}
+.score-badge {
+  padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500;
+}
+.badge-ok { background:#e8f5ee; color:#1D9E75; }
+.badge-warn { background:#fff8e6; color:#BA7517; }
+.badge-bad { background:#fff0ee; color:var(--accent); }
+.score-msg { color: var(--ink-light); }
+.score-placeholder { font-size: 0.85rem; color: var(--ink-light); line-height: 1.6; padding: 0.5rem 0; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ START SCREEN ══════════ -->
+<div id="startScreen" class="screen active">
+  <div class="bg-pattern">
+    <span>ㄱ</span><span>ㅏ</span><span>ㅎ</span><span>ㄹ</span><span>ㅗ</span>
+  </div>
+  <div class="start-content">
+    <div class="start-logo">한글</div>
+    <div class="start-sub">획순으로 배우는 한글 쓰기</div>
+    <div class="start-divider"></div>
+    <div class="mode-cards">
+      <div class="mode-card" onclick="goExplain()">
+        <span class="mode-icon">설</span>
+        <div class="mode-title">설명 모드</div>
+        <div class="mode-desc">자음과 모음의 획순과 쓰는 법을 익혀요</div>
+      </div>
+      <div class="mode-card" onclick="goPractice()">
+        <span class="mode-icon">연</span>
+        <div class="mode-title">연습 모드</div>
+        <div class="mode-desc">직접 써보고 획순 채점을 받아요</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ EXPLAIN SCREEN ══════════ -->
+<div id="explainScreen" class="screen">
+  <nav class="top-nav">
+    <button class="nav-back" onclick="goHome()">← 홈</button>
+    <span class="nav-title">설명 모드</span>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('explain','consonant')">자음</button>
+      <button class="nav-tab" onclick="switchTab('explain','vowel')">모음</button>
+    </div>
+  </nav>
+  <div class="screen-body">
+    <div class="jamo-sidebar" id="explainSidebar"></div>
+    <div class="explain-main" id="explainMain">
+      <div class="explain-jamo-hero" id="explainHero">ㄱ</div>
+      <div class="explain-jamo-name" id="explainName">기역</div>
+      <div class="explain-grid">
+        <div class="explain-canvas-wrap">
+          <div class="explain-canvas-label">획순 애니메이션</div>
+          <canvas id="explainCanvas" width="260" height="260"></canvas>
+          <div class="explain-controls">
+            <button onclick="explainPlay()">▶ 재생</button>
+            <button onclick="explainReset()">↺ 처음부터</button>
+          </div>
+        </div>
+        <div class="explain-info">
+          <h3>설명</h3>
+          <div class="explain-description" id="explainDesc">*설명문*</div>
+          <h3 style="margin-bottom:0.75rem">획순</h3>
+          <div class="stroke-list" id="explainStrokeList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PRACTICE SCREEN ══════════ -->
+<div id="practiceScreen" class="screen">
+  <nav class="top-nav">
+    <button class="nav-back" onclick="goHome()">← 홈</button>
+    <span class="nav-title">연습 모드</span>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('practice','consonant')">자음</button>
+      <button class="nav-tab" onclick="switchTab('practice','vowel')">모음</button>
+    </div>
+  </nav>
+  <div class="screen-body">
+    <div class="jamo-sidebar" id="practiceSidebar"></div>
+    <div class="practice-main">
+      <div class="practice-header">
+        <span class="practice-jamo-hero" id="practiceHero">ㄱ</span>
+        <span class="practice-jamo-name" id="practiceName">기역</span>
+      </div>
+      <div class="practice-panels">
+        <div class="p-panel">
+          <div class="p-panel-title">획순 가이드</div>
+          <canvas id="guideCanvas" class="p-canvas" width="260" height="260" style="cursor:default"></canvas>
+          <div class="p-controls">
+            <button id="playBtn" onclick="practicePlay()">▶ 재생</button>
+            <button onclick="practiceReset()">↺ 초기화</button>
+          </div>
+          <div class="stroke-dots" id="guideDots"></div>
+        </div>
+        <div class="p-panel">
+          <div class="p-panel-title">직접 써보기</div>
+          <canvas id="writeCanvas" class="p-canvas" width="260" height="260"></canvas>
+          <div class="p-controls">
+            <button class="primary" onclick="checkScore()">채점하기</button>
+            <button class="danger" onclick="clearWrite()">지우기</button>
+          </div>
+          <div class="score-section" id="scoreSection">
+            <div class="score-placeholder">써보고 채점하기를 눌러보세요</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════ DATA ═══════════
+const CONSONANTS = {
+  // ① 가로(위→오른쪽) → ② 세로(오른쪽 끝→아래)
+  'ㄱ':{name:'기역',desc:'*설명문* ㄱ은 기역으로 읽으며, 혀뒤가 연구개에 닿았다가 떨어지는 소리입니다.',strokes:[
+    {dir:'right', pts:[{x:55,y:88},{x:205,y:88}]},
+    {dir:'down',  pts:[{x:205,y:88},{x:205,y:205}]}
+  ]},
+  // ① 세로(위→아래) → ② 가로(아래→오른쪽)
+  'ㄴ':{name:'니은',desc:'*설명문* ㄴ은 니은으로 읽으며, 혀끝이 윗잇몸에 닿았다가 떨어지는 소리입니다.',strokes:[
+    {dir:'down',  pts:[{x:68,y:68},{x:68,y:205}]},
+    {dir:'right', pts:[{x:68,y:205},{x:205,y:205}]}
+  ]},
+  // ① 가로(위) → ② 세로(왼쪽→아래) → ③ 가로(아래)
+  'ㄷ':{name:'디귿',desc:'*설명문* ㄷ은 디귿으로 읽으며, 혀끝이 윗잇몸에 닿는 소리입니다.',strokes:[
+    {dir:'right', pts:[{x:55,y:75},{x:205,y:75}]},
+    {dir:'down',  pts:[{x:55,y:75},{x:55,y:205}]},
+    {dir:'right', pts:[{x:55,y:205},{x:205,y:205}]}
+  ]},
+  // ① 가로(위) → ② 꺾임(오른→아래) → ③ 가로(가운데) → ④ 꺾임(왼→아래) → ⑤ 가로(아래)
+  'ㄹ':{name:'리을',desc:'*설명문* ㄹ은 리을로 읽으며, 혀끝을 윗잇몸에 가볍게 튕기는 소리입니다.',strokes:[
+    {dir:'right', pts:[{x:55,y:72},{x:205,y:72}]},
+    {dir:'down',  pts:[{x:205,y:72},{x:205,y:138}]},
+    {dir:'right', pts:[{x:55,y:138},{x:205,y:138}]},
+    {dir:'down',  pts:[{x:55,y:138},{x:55,y:205}]},
+    {dir:'right', pts:[{x:55,y:205},{x:205,y:205}]}
+  ]},
+  // ① 세로(왼쪽) → ② 가로(위) → ③ 세로(오른쪽) → ④ 가로(아래)
+  'ㅁ':{name:'미음',desc:'*설명문* ㅁ은 미음으로 읽으며, 두 입술이 붙었다가 떨어지는 소리입니다.',strokes:[
+    {dir:'down',  pts:[{x:65,y:75},{x:65,y:205}]},
+    {dir:'right', pts:[{x:65,y:75},{x:195,y:75}]},
+    {dir:'down',  pts:[{x:195,y:75},{x:195,y:205}]},
+    {dir:'right', pts:[{x:65,y:205},{x:195,y:205}]}
+  ]},
+  // ① 세로(왼) → ② 세로(오른) → ③ 가로(가운데) → ④ 가로(아래)
+  'ㅂ':{name:'비읍',desc:'*설명문* ㅂ은 비읍으로 읽으며, 두 입술이 붙었다가 터지는 소리입니다.',strokes:[
+    {dir:'down',  pts:[{x:70,y:72},{x:70,y:205}]},
+    {dir:'down',  pts:[{x:192,y:72},{x:192,y:205}]},
+    {dir:'right', pts:[{x:70,y:135},{x:192,y:135}]},
+    {dir:'right', pts:[{x:70,y:205},{x:192,y:205}]}
+  ]},
+  // ① '\' 오른쪽위→왼쪽아래, ② ①획 38%지점에서→오른쪽아래
+  'ㅅ':{name:'시옷',desc:'*설명문* ㅅ은 시옷으로 읽으며, 혀끝이 아랫잇몸에 닿아 마찰을 일으키는 소리입니다.',strokes:[
+    {dir:'diag-down-left',  pts:[{x:160,y:58},{x:78,y:210}]},
+    {dir:'diag-down-right', pts:[{x:129,y:120},{x:205,y:210}]}
+  ]},
+  // ① 원(반시계방향)만, 중앙 배치
+  'ㅇ':{name:'이응',desc:'*설명문* ㅇ은 이응으로 읽으며, 초성에서는 소리가 없고 종성에서는 비음입니다.',strokes:[
+    {dir:'circle', pts:buildCircleCCW(130,130,65)}
+  ]},
+  // ① 가로 → ② '\' 가로선 오른쪽끝→왼쪽아래 → ③ ②의 38%지점→오른쪽아래
+  'ㅈ':{name:'지읒',desc:'*설명문* ㅈ은 지읒으로 읽으며, 혀끝이 윗잇몸에 닿아 마찰하는 소리입니다.',strokes:[
+    {dir:'right',          pts:[{x:62,y:88},{x:198,y:88}]},
+    {dir:'diag-down-left', pts:[{x:198,y:88},{x:78,y:210}]},
+    {dir:'diag-down-right',pts:[{x:152,y:134},{x:210,y:210}]}
+  ]},
+  // ① 짧은 가로(점) → ② 가로 → ③ '\' 오른쪽끝→왼쪽아래 → ④ ③의 38%지점→오른쪽아래
+  'ㅊ':{name:'치읓',desc:'*설명문* ㅊ은 치읓으로 읽으며, ㅈ보다 강하게 내는 소리입니다.',strokes:[
+    {dir:'right',          pts:[{x:108,y:55},{x:152,y:55}]},
+    {dir:'right',          pts:[{x:62,y:100},{x:198,y:100}]},
+    {dir:'diag-down-left', pts:[{x:198,y:100},{x:78,y:218}]},
+    {dir:'diag-down-right',pts:[{x:152,y:145},{x:210,y:218}]}
+  ]},
+  // ① 가로(위) → ② 세로(오른쪽끝→아래) → ③ 짧은가로(세로선에 닿게, 왼→오른)
+  'ㅋ':{name:'키읔',desc:'*설명문* ㅋ은 키읔으로 읽으며, ㄱ보다 강하게 내는 소리입니다.',strokes:[
+    {dir:'right', pts:[{x:55,y:88},{x:205,y:88}]},
+    {dir:'down',  pts:[{x:205,y:88},{x:205,y:205}]},
+    {dir:'right', pts:[{x:55,y:145},{x:205,y:145}]}
+  ]},
+  // ① 가로(위) → ② 가로(가운데) → ③ 세로(왼쪽→아래) → ④ 가로(아래)
+  'ㅌ':{name:'티읕',desc:'*설명문* ㅌ은 티읕으로 읽으며, ㄷ보다 강하게 내는 소리입니다.',strokes:[
+    {dir:'right', pts:[{x:55,y:75},{x:205,y:75}]},
+    {dir:'right', pts:[{x:55,y:128},{x:205,y:128}]},
+    {dir:'down',  pts:[{x:55,y:75},{x:55,y:205}]},
+    {dir:'right', pts:[{x:55,y:205},{x:205,y:205}]}
+  ]},
+  // ① 가로(위) → ② 세로(왼쪽) → ③ 세로(오른쪽) → ④ 가로(아래)
+  'ㅍ':{name:'피읖',desc:'*설명문* ㅍ은 피읖으로 읽으며, ㅂ보다 강하게 내는 소리입니다.',strokes:[
+    {dir:'right', pts:[{x:55,y:88},{x:205,y:88}]},
+    {dir:'down',  pts:[{x:88,y:88},{x:88,y:205}]},
+    {dir:'down',  pts:[{x:172,y:88},{x:172,y:205}]},
+    {dir:'right', pts:[{x:55,y:205},{x:205,y:205}]}
+  ]},
+  // ① 짧은 가로 → ② 가로(①보다 약간 길게) → ③ 원(반시계)
+  'ㅎ':{name:'히읗',desc:'*설명문* ㅎ은 히읗으로 읽으며, 목구멍에서 마찰을 일으키는 소리입니다.',strokes:[
+    {dir:'right',  pts:[{x:105,y:62},{x:155,y:62}]},
+    {dir:'right',  pts:[{x:90,y:100},{x:170,y:100}]},
+    {dir:'circle', pts:buildCircleCCW(130,168,50)}
+  ]}
+};
+
+const VOWELS = {
+  'ㅏ':{name:'아',desc:'*설명문* ㅏ는 입을 크게 벌리고 혀를 평평하게 하여 발음하는 모음입니다.',strokes:[{dir:'down',pts:[{x:110,y:50},{x:110,y:210}]},{dir:'right',pts:[{x:110,y:118},{x:190,y:118}]}]},
+  'ㅑ':{name:'야',desc:'*설명문* ㅑ는 ㅏ와 비슷하지만 짧게 ㅣ를 앞에 붙여 발음합니다.',strokes:[{dir:'down',pts:[{x:110,y:50},{x:110,y:210}]},{dir:'right',pts:[{x:110,y:98},{x:190,y:98}]},{dir:'right',pts:[{x:110,y:138},{x:190,y:138}]}]},
+  'ㅓ':{name:'어',desc:'*설명문* ㅓ는 입을 반쯤 벌리고 혀를 뒤로 당겨 발음하는 모음입니다.',strokes:[{dir:'down',pts:[{x:150,y:50},{x:150,y:210}]},{dir:'left',pts:[{x:150,y:118},{x:68,y:118}]}]},
+  'ㅕ':{name:'여',desc:'*설명문* ㅕ는 ㅓ와 비슷하지만 짧게 ㅣ를 앞에 붙여 발음합니다.',strokes:[{dir:'down',pts:[{x:150,y:50},{x:150,y:210}]},{dir:'left',pts:[{x:150,y:98},{x:68,y:98}]},{dir:'left',pts:[{x:150,y:138},{x:68,y:138}]}]},
+  'ㅗ':{name:'오',desc:'*설명문* ㅗ는 입술을 동그랗게 오므리고 혀를 뒤로 당겨 발음하는 모음입니다.',strokes:[{dir:'right',pts:[{x:55,y:150},{x:205,y:150}]},{dir:'up',pts:[{x:130,y:150},{x:130,y:68}]}]},
+  'ㅛ':{name:'요',desc:'*설명문* ㅛ는 ㅗ와 비슷하지만 짧게 ㅣ를 앞에 붙여 발음합니다.',strokes:[{dir:'right',pts:[{x:55,y:150},{x:205,y:150}]},{dir:'up',pts:[{x:105,y:150},{x:105,y:68}]},{dir:'up',pts:[{x:155,y:150},{x:155,y:68}]}]},
+  'ㅜ':{name:'우',desc:'*설명문* ㅜ는 입술을 동그랗게 오므리고 발음하는 모음입니다.',strokes:[{dir:'right',pts:[{x:55,y:110},{x:205,y:110}]},{dir:'down',pts:[{x:130,y:110},{x:130,y:195}]}]},
+  'ㅠ':{name:'유',desc:'*설명문* ㅠ는 ㅜ와 비슷하지만 짧게 ㅣ를 앞에 붙여 발음합니다.',strokes:[{dir:'right',pts:[{x:55,y:110},{x:205,y:110}]},{dir:'down',pts:[{x:105,y:110},{x:105,y:195}]},{dir:'down',pts:[{x:155,y:110},{x:155,y:195}]}]},
+  'ㅡ':{name:'으',desc:'*설명문* ㅡ는 입술을 옆으로 벌리고 혀를 뒤로 당겨 발음하는 모음입니다.',strokes:[{dir:'right',pts:[{x:55,y:130},{x:205,y:130}]}]},
+  'ㅣ':{name:'이',desc:'*설명문* ㅣ는 입술을 옆으로 벌리고 혀를 앞쪽 위로 올려 발음하는 모음입니다.',strokes:[{dir:'down',pts:[{x:130,y:50},{x:130,y:210}]}]},
+};
+
+function buildCircle(cx,cy,r){
+  const pts=[];
+  for(let i=0;i<=40;i++){
+    const a=(i/40)*Math.PI*2-Math.PI/2;
+    pts.push({x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r});
+  }
+  return pts;
+}
+function buildCircleCCW(cx,cy,r){
+  const pts=[];
+  for(let i=0;i<=40;i++){
+    const a=(-i/40)*Math.PI*2-Math.PI/2;
+    pts.push({x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r});
+  }
+  return pts;
+}
+
+const COLORS=['#3B6DD8','#D85A30','#1D9E75','#9B5EA2','#BA7517'];
+const DIR_LABELS={right:'→ 가로획',down:'↓ 세로획',up:'↑ 세로획',left:'← 가로획','diag-down-left':'↙ 삐침','diag-down-right':'↘ 삐침','diag-up-right':'↗ 삐침',circle:'○ 원'};
+
+// ═══════════ STATE ═══════════
+let currentMode='explain', currentTab='consonant';
+let currentJamo='ㄱ';
+let eAnimIdx=0,eAnimPt=0,eAnimPlaying=false,eAnimRAF=null;
+let pAnimIdx=0,pAnimPt=0,pAnimPlaying=false,pAnimRAF=null;
+let userStrokes=[],curStroke=[],isDrawing=false;
+
+// ═══════════ CANVAS UTILS ═══════════
+function drawGrid(ctx,size=260){
+  ctx.clearRect(0,0,size,size);
+  ctx.fillStyle='#f9f7f2'; ctx.fillRect(0,0,size,size);
+  ctx.strokeStyle='rgba(26,26,46,0.07)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(size/2,0); ctx.lineTo(size/2,size); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,size/2); ctx.lineTo(size,size/2); ctx.stroke();
+  ctx.setLineDash([]); ctx.strokeStyle='rgba(26,26,46,0.12)'; ctx.strokeRect(0,0,size,size);
+}
+
+function paintStrokes(ctx,strokes,upToS,upToP=null){
+  drawGrid(ctx);
+  strokes.forEach((s,si)=>{
+    if(si>upToS) return;
+    const pts=s.pts;
+    const end=si<upToS?pts.length-1:(upToP!==null?upToP:pts.length-1);
+    if(end<1) return;
+    ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+    for(let i=1;i<=end;i++) ctx.lineTo(pts[i].x,pts[i].y);
+    ctx.strokeStyle=COLORS[si%COLORS.length]; ctx.lineWidth=5.5;
+    ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
+    if(si<=upToS){
+      ctx.beginPath(); ctx.arc(pts[0].x,pts[0].y,9,0,Math.PI*2);
+      ctx.fillStyle=COLORS[si%COLORS.length]; ctx.fill();
+      ctx.fillStyle='#fff'; ctx.font='bold 10px sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(si+1,pts[0].x,pts[0].y);
+    }
+  });
+}
+
+// ═══════════ NAVIGATION ═══════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goHome(){ showScreen('startScreen'); stopAllAnims(); }
+function goExplain(){ currentMode='explain'; showScreen('explainScreen'); buildSidebar('explain',currentTab); selectJamo(Object.keys(currentTab==='consonant'?CONSONANTS:VOWELS)[0]); }
+function goPractice(){ currentMode='practice'; showScreen('practiceScreen'); buildSidebar('practice',currentTab); selectJamo(Object.keys(currentTab==='consonant'?CONSONANTS:VOWELS)[0]); }
+
+function switchTab(mode,tab){
+  currentTab=tab;
+  const screen=document.getElementById(mode+'Screen');
+  screen.querySelectorAll('.nav-tab').forEach((t,i)=>{
+    t.classList.toggle('active',(i===0&&tab==='consonant')||(i===1&&tab==='vowel'));
+  });
+  buildSidebar(mode,tab);
+  const data=tab==='consonant'?CONSONANTS:VOWELS;
+  selectJamo(Object.keys(data)[0]);
+}
+
+// ═══════════ SIDEBAR ═══════════
+function buildSidebar(mode,tab){
+  const id=mode+'Sidebar';
+  const el=document.getElementById(id); el.innerHTML='';
+  const data=tab==='consonant'?CONSONANTS:VOWELS;
+  const title=document.createElement('div');
+  title.className='sidebar-section-title';
+  title.textContent=tab==='consonant'?'자음 (19개)':'모음 (10개)';
+  el.appendChild(title);
+  const grid=document.createElement('div'); grid.className='jamo-grid';
+  Object.keys(data).forEach(j=>{
+    const b=document.createElement('button');
+    b.className='jamo-pill'+(j===currentJamo?' active':'');
+    b.textContent=j; b.title=data[j].name;
+    b.onclick=()=>selectJamo(j);
+    grid.appendChild(b);
+  });
+  el.appendChild(grid);
+}
+
+function selectJamo(j){
+  currentJamo=j;
+  document.querySelectorAll('.jamo-pill').forEach(p=>p.classList.toggle('active',p.textContent===j));
+  stopAllAnims();
+  if(currentMode==='explain') renderExplain(j);
+  else renderPractice(j);
+}
+
+// ═══════════ EXPLAIN MODE ═══════════
+function renderExplain(j){
+  const data=(currentTab==='consonant'?CONSONANTS:VOWELS)[j];
+  document.getElementById('explainHero').textContent=j;
+  document.getElementById('explainName').textContent=data.name;
+  document.getElementById('explainDesc').textContent=data.desc;
+  const list=document.getElementById('explainStrokeList'); list.innerHTML='';
+  data.strokes.forEach((s,i)=>{
+    const row=document.createElement('div'); row.className='stroke-item';
+    row.innerHTML=`<span class="stroke-num" style="background:${COLORS[i%COLORS.length]}">${i+1}</span>
+      <span class="stroke-dir">${DIR_LABELS[s.dir]||s.dir}</span>`;
+    list.appendChild(row);
+  });
+  eAnimIdx=0; eAnimPt=0;
+  const ctx=document.getElementById('explainCanvas').getContext('2d');
+  drawGrid(ctx);
+}
+
+function explainPlay(){
+  if(eAnimPlaying){ stopExplainAnim(); return; }
+  const j=currentJamo;
+  const data=(currentTab==='consonant'?CONSONANTS:VOWELS)[j];
+  const strokes=data.strokes;
+  if(eAnimIdx>=strokes.length){ eAnimIdx=0; eAnimPt=0; }
+  eAnimPlaying=true;
+  const ctx=document.getElementById('explainCanvas').getContext('2d');
+  function step(){
+    if(!eAnimPlaying) return;
+    paintStrokes(ctx,strokes,eAnimIdx,eAnimPt);
+    eAnimPt++;
+    if(eAnimPt>=strokes[eAnimIdx].pts.length){
+      eAnimIdx++; eAnimPt=0;
+      if(eAnimIdx>=strokes.length){ stopExplainAnim(); paintStrokes(ctx,strokes,strokes.length-1); return; }
+      setTimeout(()=>{ eAnimRAF=requestAnimationFrame(step); },320); return;
+    }
+    eAnimRAF=requestAnimationFrame(step);
+  }
+  eAnimRAF=requestAnimationFrame(step);
+}
+function stopExplainAnim(){ if(eAnimRAF) cancelAnimationFrame(eAnimRAF); eAnimPlaying=false; }
+function explainReset(){ stopExplainAnim(); eAnimIdx=0; eAnimPt=0; drawGrid(document.getElementById('explainCanvas').getContext('2d')); }
+
+// ═══════════ PRACTICE MODE ═══════════
+function renderPractice(j){
+  const data=(currentTab==='consonant'?CONSONANTS:VOWELS)[j];
+  document.getElementById('practiceHero').textContent=j;
+  document.getElementById('practiceName').textContent=data.name;
+  pAnimIdx=0; pAnimPt=0;
+  userStrokes=[]; curStroke=[]; isDrawing=false;
+  drawGrid(document.getElementById('guideCanvas').getContext('2d'));
+  drawGrid(document.getElementById('writeCanvas').getContext('2d'));
+  updateGuideDots(-1);
+  document.getElementById('playBtn').textContent='▶ 재생';
+  document.getElementById('scoreSection').innerHTML='<div class="score-placeholder">써보고 채점하기를 눌러보세요</div>';
+}
+
+function updateGuideDots(upTo){
+  const data=(currentTab==='consonant'?CONSONANTS:VOWELS)[currentJamo];
+  const el=document.getElementById('guideDots'); el.innerHTML='';
+  data.strokes.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='s-dot'+(i<upTo?' done':i===upTo?' curr':'');
+    d.textContent=(i+1)+'획';
+    el.appendChild(d);
+  });
+}
+
+function practicePlay(){
+  if(pAnimPlaying){ stopPracticeAnim(); return; }
+  const data=(currentTab==='consonant'?CONSONANTS:VOWELS)[currentJamo];
+  const strokes=data.strokes;
+  if(pAnimIdx>=strokes.length){ pAnimIdx=0; pAnimPt=0; }
+  pAnimPlaying=true;
+  document.getElementById('playBtn').textContent='⏸ 일시정지';
+  const ctx=document.getElementById('guideCanvas').getContext('2d');
+  function step(){
+    if(!pAnimPlaying) return;
+    paintStrokes(ctx,strokes,pAnimIdx,pAnimPt);
+    updateGuideDots(pAnimIdx);
+    pAnimPt++;
+    if(pAnimPt>=strokes[pAnimIdx].pts.length){
+      pAnimIdx++; pAnimPt=0;
+      if(pAnimIdx>=strokes.length){ stopPracticeAnim(); paintStrokes(ctx,strokes,strokes.length-1); updateGuideDots(strokes.length); return; }
+      setTimeout(()=>{ pAnimRAF=requestAnimationFrame(step); },320); return;
+    }
+    pAnimRAF=requestAnimationFrame(step);
+  }
+  pAnimRAF=requestAnimationFrame(step);
+}
+function stopPracticeAnim(){ if(pAnimRAF) cancelAnimationFrame(pAnimRAF); pAnimPlaying=false; document.getElementById('playBtn').textContent='▶ 재생'; }
+function practiceReset(){ stopPracticeAnim(); pAnimIdx=0; pAnimPt=0; drawGrid(document.getElementById('guideCanvas').getContext('2d')); updateGuideDots(-1); }
+function stopAllAnims(){ stopExplainAnim(); stopPracticeAnim(); }
+
+// ═══════════ DRAWING + AUTO STROKE SPLIT ═══════════
+// 방향 전환 감지 설정
+const SPLIT_ANGLE_DEG = 60;   // 이 각도 이상 꺾이면 새 획으로 분리
+const SMOOTH_WINDOW   = 6;    // 방향 계산에 쓸 최근 점 수 (노이즈 제거)
+const MIN_STROKE_LEN  = 8;    // 이보다 짧은 획은 무시 (픽셀)
+const PAUSE_MS        = 350;  // 이 시간(ms) 이상 멈추면 새 획으로 분리
+
+let pauseTimer = null;
+
+function getPos(e, canvas){
+  const r = canvas.getBoundingClientRect();
+  const s = e.touches ? e.touches[0] : e;
+  return { x:(s.clientX-r.left)*(260/r.width), y:(s.clientY-r.top)*(260/r.height) };
+}
+
+// 최근 점들의 평균 방향 벡터 반환
+function recentDir(pts, window=SMOOTH_WINDOW){
+  if(pts.length < 2) return null;
+  const from = pts[Math.max(0, pts.length-window-1)];
+  const to   = pts[pts.length-1];
+  const dx = to.x-from.x, dy = to.y-from.y;
+  const len = Math.sqrt(dx*dx+dy*dy);
+  return len < 1 ? null : { dx:dx/len, dy:dy/len };
+}
+
+// 두 방향 벡터 사이 각도(도) 반환
+function angleBetween(a, b){
+  const dot = Math.min(1, Math.max(-1, a.dx*b.dx + a.dy*b.dy));
+  return Math.acos(dot) * 180 / Math.PI;
+}
+
+// 획 길이 계산
+function strokeLen(pts){
+  let len=0;
+  for(let i=1;i<pts.length;i++){
+    const dx=pts[i].x-pts[i-1].x, dy=pts[i].y-pts[i-1].y;
+    len+=Math.sqrt(dx*dx+dy*dy);
+  }
+  return len;
+}
+
+// 현재 그리고 있는 획을 확정 획으로 flush
+function flushCurStroke(){
+  if(curStroke.length >= 2 && strokeLen(curStroke) >= MIN_STROKE_LEN){
+    userStrokes.push([...curStroke]);
+  }
+  curStroke = [];
+}
+
+// 캔버스 다시 그리기 — 확정 획은 색상, 현재 획은 진한 색
+function redrawWrite(){
+  const ctx = document.getElementById('writeCanvas').getContext('2d');
+  drawGrid(ctx);
+  // 확정된 획들 — 획 번호마다 색 다르게
+  userStrokes.forEach((s,si)=>{
+    if(s.length<2) return;
+    ctx.beginPath(); ctx.moveTo(s[0].x,s[0].y);
+    for(let i=1;i<s.length;i++) ctx.lineTo(s[i].x,s[i].y);
+    ctx.strokeStyle = COLORS[si % COLORS.length];
+    ctx.lineWidth=4.5; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
+    // 시작점에 번호 배지
+    ctx.beginPath(); ctx.arc(s[0].x,s[0].y,9,0,Math.PI*2);
+    ctx.fillStyle = COLORS[si % COLORS.length]; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 10px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(si+1, s[0].x, s[0].y);
+  });
+  // 현재 그리는 중인 획 (아직 확정 전)
+  if(curStroke.length >= 2){
+    ctx.beginPath(); ctx.moveTo(curStroke[0].x,curStroke[0].y);
+    for(let i=1;i<curStroke.length;i++) ctx.lineTo(curStroke[i].x,curStroke[i].y);
+    ctx.strokeStyle = COLORS[userStrokes.length % COLORS.length];
+    ctx.lineWidth=4.5; ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.globalAlpha=0.6; ctx.stroke(); ctx.globalAlpha=1;
+  }
+  // 인식된 획 수 표시
+  const total = userStrokes.length + (curStroke.length>=2?1:0);
+  if(total>0){
+    ctx.fillStyle='rgba(26,26,46,0.35)'; ctx.font='11px sans-serif';
+    ctx.textAlign='right'; ctx.textBaseline='top';
+    ctx.fillText(total+'획 인식됨', 254, 4);
+  }
+}
+
+function clearWrite(){
+  userStrokes=[]; curStroke=[]; isDrawing=false;
+  if(pauseTimer){ clearTimeout(pauseTimer); pauseTimer=null; }
+  drawGrid(document.getElementById('writeCanvas').getContext('2d'));
+  document.getElementById('scoreSection').innerHTML='<div class="score-placeholder">써보고 채점하기를 눌러보세요</div>';
+}
+
+const wc = ()=>document.getElementById('writeCanvas');
+
+function onDown(e){
+  e.preventDefault();
+  if(pauseTimer){ clearTimeout(pauseTimer); pauseTimer=null; }
+  isDrawing = true;
+  // 이미 curStroke가 있으면 새 획 시작으로 간주
+  if(curStroke.length >= 2) flushCurStroke();
+  curStroke = [getPos(e, wc())];
+  redrawWrite();
+}
+
+function onMove(e){
+  e.preventDefault();
+  if(!isDrawing) return;
+
+  const pt = getPos(e, wc());
+  curStroke.push(pt);
+
+  // ── 방향 전환 감지 ──
+  if(curStroke.length >= SMOOTH_WINDOW*2+2){
+    // 이전 방향: SMOOTH_WINDOW 이전 구간
+    const mid = curStroke.length - SMOOTH_WINDOW - 1;
+    const prevSeg = curStroke.slice(Math.max(0,mid-SMOOTH_WINDOW), mid+1);
+    const currSeg = curStroke.slice(mid, curStroke.length);
+    const prevDir = recentDir(prevSeg, prevSeg.length);
+    const currDir = recentDir(currSeg, currSeg.length);
+    if(prevDir && currDir){
+      const angle = angleBetween(prevDir, currDir);
+      if(angle >= SPLIT_ANGLE_DEG){
+        // 꺾임 감지 → 직전까지를 확정 획으로 저장, 현재 점부터 새 획 시작
+        const splitAt = curStroke.length - Math.floor(SMOOTH_WINDOW/2);
+        const finishedPts = curStroke.slice(0, splitAt);
+        const newPts      = curStroke.slice(splitAt);
+        curStroke = finishedPts;
+        flushCurStroke();
+        curStroke = newPts.length ? newPts : [pt];
+      }
+    }
+  }
+
+  // ── 일시정지 감지 ── (멈추면 현재 획 확정)
+  if(pauseTimer) clearTimeout(pauseTimer);
+  pauseTimer = setTimeout(()=>{
+    if(isDrawing && curStroke.length>=2){
+      flushCurStroke();
+      redrawWrite();
+    }
+    pauseTimer=null;
+  }, PAUSE_MS);
+
+  redrawWrite();
+}
+
+function onUp(e){
+  e.preventDefault();
+  if(!isDrawing) return;
+  if(pauseTimer){ clearTimeout(pauseTimer); pauseTimer=null; }
+  flushCurStroke();
+  isDrawing=false;
+  redrawWrite();
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const canvas=document.getElementById('writeCanvas');
+  canvas.addEventListener('mousedown',onDown); canvas.addEventListener('mousemove',onMove);
+  canvas.addEventListener('mouseup',onUp);     canvas.addEventListener('mouseleave',onUp);
+  canvas.addEventListener('touchstart',onDown,{passive:false});
+  canvas.addEventListener('touchmove',onMove,{passive:false});
+  canvas.addEventListener('touchend',onUp,{passive:false});
+});
+
+// ═══════════ SCORING ═══════════
+function vecDir(pts){
+  if(pts.length<2) return {dx:0,dy:0,len:0};
+  const dx=pts[pts.length-1].x-pts[0].x, dy=pts[pts.length-1].y-pts[0].y;
+  const len=Math.sqrt(dx*dx+dy*dy);
+  return len<1?{dx:0,dy:0,len:0}:{dx:dx/len,dy:dy/len,len};
+}
+function scoreOne(uPts,refStroke){
+  if(!uPts||uPts.length<2) return {score:0,msg:'획을 찾을 수 없어요'};
+  const uv=vecDir(uPts), rv=vecDir(refStroke.pts);
+  const dot=Math.max(0,uv.dx*rv.dx+uv.dy*rv.dy);
+  const refLen=rv.len;
+  const lenR=refLen>0?Math.min(uv.len,refLen)/Math.max(uv.len,refLen):0;
+  const uMid={x:(uPts[0].x+uPts[uPts.length-1].x)/2,y:(uPts[0].y+uPts[uPts.length-1].y)/2};
+  const rMid={x:(refStroke.pts[0].x+refStroke.pts[refStroke.pts.length-1].x)/2,y:(refStroke.pts[0].y+refStroke.pts[refStroke.pts.length-1].y)/2};
+  const posDist=Math.sqrt((uMid.x-rMid.x)**2+(uMid.y-rMid.y)**2);
+  const posScore=Math.max(0,1-posDist/130);
+  const score=Math.round((dot*0.5+lenR*0.25+posScore*0.25)*100);
+  let msg='';
+  if(dot<0.5){ const d=refStroke.dir; msg=d==='right'?'왼→오른쪽으로 써요':d==='down'?'위→아래로 써요':d==='up'?'아래→위로 써요':d==='left'?'오른→왼쪽으로 써요':'방향이 틀렸어요'; }
+  else if(lenR<0.45) msg='획이 너무 짧아요';
+  else if(posScore<0.4) msg='위치가 벗어났어요';
+  else if(score>=85) msg='완벽해요!';
+  else if(score>=65) msg='잘 썼어요';
+  else msg='조금 더 연습해봐요';
+  return {score,msg};
+}
+
+function getColor(s){ return s>=80?'#1D9E75':s>=55?'#BA7517':'#c84b31'; }
+function badgeClass(s){ return s>=80?'badge-ok':s>=55?'badge-warn':'badge-bad'; }
+
+function checkScore(){
+  const data=(currentTab==='consonant'?CONSONANTS:VOWELS)[currentJamo];
+  const strokes=data.strokes;
+  const el=document.getElementById('scoreSection');
+  if(userStrokes.length===0){ el.innerHTML='<div class="score-placeholder" style="color:#c84b31">먼저 캔버스에 써보세요!</div>'; return; }
+  const results=strokes.map((s,i)=>({res:userStrokes[i]?scoreOne(userStrokes[i],s):{score:0,msg:'이 획이 없어요'}}));
+  const avg=Math.round(results.reduce((a,r)=>a+r.res.score,0)/results.length);
+  const overall=avg>=85?'훌륭해요! 🎉':avg>=65?'잘 쓰고 있어요 👍':'조금 더 연습해봐요';
+  const countNote=userStrokes.length!==strokes.length?`<div style="font-size:0.78rem;color:#BA7517;margin:4px 0">${strokes.length}획이 필요해요 (현재 ${userStrokes.length}획 작성)</div>`:'';
+  let breakdown='';
+  results.forEach((r,i)=>{ breakdown+=`<div class="score-row"><span class="score-badge ${badgeClass(r.res.score)}">${i+1}획 ${r.res.score}점</span><span class="score-msg">${r.res.msg}</span></div>`; });
+  el.innerHTML=`
+    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
+      <span class="score-num" style="color:${getColor(avg)}">${avg}점</span>
+      <span style="font-size:0.85rem;color:var(--ink-light)">${overall}</span>
+    </div>
+    <div class="score-bar-track"><div class="score-bar-fill" style="width:0%;background:${getColor(avg)}" id="sbar"></div></div>
+    ${countNote}
+    <div class="score-breakdown">${breakdown}</div>`;
+  setTimeout(()=>{ const b=document.getElementById('sbar'); if(b) b.style.width=avg+'%'; },50);
+}
+
+// ═══════════ INIT ═══════════
+buildSidebar('explain','consonant');
+buildSidebar('practice','consonant');
+</script>
+</body>
+</html>

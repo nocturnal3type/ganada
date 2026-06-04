@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GanaDa 획순 좌표 에디터</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#f7f4ee;color:#1a1a2e;padding:20px;line-height:1.6}
+.wrap{max-width:1100px;margin:0 auto}
+h1{font-size:1.5rem;margin-bottom:4px}
+.sub{color:#666;font-size:0.9rem;margin-bottom:20px}
+.main{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start}
+@media(max-width:760px){.main{grid-template-columns:1fr}}
+.left{}
+.canvas-box{position:relative;background:#fff;border:1px solid #ddd;border-radius:12px;display:inline-block}
+canvas{display:block;border-radius:12px;cursor:crosshair;touch-action:none}
+.ghost{position:absolute;top:0;left:0;font-size:180px;color:rgba(0,0,0,0.06);pointer-events:none;display:flex;align-items:center;justify-content:center;width:260px;height:260px;font-family:'Apple SD Gothic Neo',serif}
+.controls{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px}
+.snap-controls{margin-top:12px;background:#fff;border:1px solid #eee;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.snap-toggle{display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer}
+.snap-toggle input{width:16px;height:16px;cursor:pointer}
+.grid-size{display:flex;align-items:center;gap:6px;font-size:0.85rem}
+.grid-size button{padding:4px 12px;font-size:0.8rem}
+.grid-size button.active{background:#c84b31;color:#fff;border-color:#c84b31}
+button{padding:8px 14px;border-radius:8px;border:1px solid #ccc;background:#fff;cursor:pointer;font-size:0.85rem;font-family:inherit;transition:0.15s}
+button:hover{border-color:#c84b31;color:#c84b31}
+button.primary{background:#c84b31;color:#fff;border-color:#c84b31}
+button.primary:hover{background:#a83a25;color:#fff}
+.jamo-input{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.jamo-input input{font-size:1.5rem;width:60px;text-align:center;padding:4px;border:1px solid #ccc;border-radius:8px;font-family:'Apple SD Gothic Neo',serif}
+.info{font-size:0.82rem;color:#555;background:#fff;border:1px solid #eee;border-radius:8px;padding:12px;margin-top:12px}
+.info b{color:#c84b31}
+.right{}
+.strokes-list{background:#fff;border:1px solid #ddd;border-radius:12px;padding:16px;margin-bottom:16px;min-height:80px}
+.stroke-row{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;margin-bottom:6px;background:#faf8f4}
+.stroke-num{width:26px;height:26px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0}
+.stroke-detail{flex:1;font-size:0.85rem}
+.stroke-dir{font-size:0.75rem;color:#888}
+.del-btn{padding:4px 8px;font-size:0.75rem;color:#c84b31;border-color:#f0c0b5}
+.output{background:#1a1a2e;color:#7CFC00;border-radius:12px;padding:16px;font-family:monospace;font-size:0.8rem;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow:auto}
+.output-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.output-label h3{font-size:0.95rem}
+.empty{color:#aaa;font-size:0.85rem;text-align:center;padding:20px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:0.75rem;color:#666}
+.legend span{display:flex;align-items:center;gap:4px}
+.dot{width:10px;height:10px;border-radius:2px}
+.steps{counter-reset:s;margin:16px 0;padding-left:0;list-style:none}
+.steps li{counter-increment:s;padding:4px 0 4px 28px;position:relative;font-size:0.85rem}
+.steps li::before{content:counter(s);position:absolute;left:0;top:4px;width:20px;height:20px;background:#c84b31;color:#fff;border-radius:50%;font-size:0.7rem;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>✏️ GanaDa 획순 좌표 에디터</h1>
+  <div class="sub">캔버스에 획을 하나씩 그리면 좌표가 자동으로 만들어져요. 결과를 복사해서 저에게 주세요!</div>
+
+  <ol class="steps">
+    <li>위쪽 칸에 만들 글자를 입력해요 (예: ㄱ) — 흐릿한 안내 글자가 떠요</li>
+    <li>안내 글자를 따라 <b>획을 하나 그려요</b> (마우스로 누르고 → 떼기). 한 번 그으면 1획이 추가돼요</li>
+    <li>다음 획을 또 그어요. 획순대로 차례차례!</li>
+    <li>잘못 그었으면 오른쪽 목록에서 그 획만 <b>삭제</b> 가능</li>
+    <li>다 그리면 아래 <b>결과 박스의 내용을 복사</b>해서 저에게 붙여넣어 주세요</li>
+  </ol>
+
+  <div class="main">
+    <div class="left">
+      <div class="jamo-input">
+        <label>글자:</label>
+        <input id="jamoChar" value="ㄱ" maxlength="1" oninput="updateGhost()">
+        <span style="font-size:0.8rem;color:#888">← 안내용</span>
+      </div>
+      <div class="canvas-box">
+        <div class="ghost" id="ghost">ㄱ</div>
+        <canvas id="cv" width="260" height="260"></canvas>
+      </div>
+      <div class="controls">
+        <button onclick="undoStroke()">↶ 마지막 획 취소</button>
+        <button onclick="clearAll()">🗑 전부 지우기</button>
+      </div>
+      <div class="snap-controls">
+        <label class="snap-toggle">
+          <input type="checkbox" id="snapOn" checked onchange="redraw()">
+          <b>격자 스냅</b> (직선 깔끔하게)
+        </label>
+        <div class="grid-size">
+          격자 간격:
+          <button onclick="setGrid(10)" id="g10">10</button>
+          <button onclick="setGrid(20)" id="g20" class="active">20</button>
+          <button onclick="setGrid(26)" id="g26">26</button>
+        </div>
+        <label class="snap-toggle">
+          <input type="checkbox" id="orthoOn" checked>
+          <b>수평/수직 고정</b> (가로·세로획 반듯하게)
+        </label>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div class="info">
+        💡 <b>격자 스냅</b>을 켜면 점이 격자 교차점에 딱 붙어서 직선이 깔끔해져요.<br>
+        💡 <b>수평/수직 고정</b>은 거의 가로/세로인 획을 완전히 반듯하게 만들어줘요.<br>
+        💡 <b>ㅇ, ㅎ의 원</b>은 그리기 어려우니 비워두고 "ㅇ은 원"이라고 알려주세요.<br>
+        💡 캔버스 크기는 <b>260 × 260</b> 기준이에요.
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="output-label"><h3>📋 그린 획 목록</h3></div>
+      <div class="strokes-list" id="strokesList"><div class="empty">아직 그린 획이 없어요</div></div>
+
+      <div class="output-label">
+        <h3>📦 결과 (이걸 복사해서 주세요)</h3>
+        <button class="primary" onclick="copyOutput()">복사하기</button>
+      </div>
+      <div class="output" id="output">글자를 그리면 여기에 코드가 나와요</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS=['#3B6DD8','#D85A30','#1D9E75','#9B5EA2','#BA7517','#c84b31'];
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let strokes=[];      // [{dir, pts:[{x,y},{x,y}]}]
+let drawing=false, startPt=null, curPt=null;
+let GRID=20;         // 격자 간격
+
+// 한글 → 이미지 파일명 (images/ 폴더, GitHub raw 또는 상대경로)
+const IMG_FILE = {
+  'ㄱ':'g','ㄴ':'n','ㄷ':'d','ㄹ':'r','ㅁ':'m','ㅂ':'b','ㅅ':'s',
+  'ㅇ':'0','ㅈ':'j','ㅊ':'ch','ㅋ':'k','ㅌ':'t','ㅍ':'p','ㅎ':'h',
+  'ㅏ':'a','ㅑ':'ya','ㅓ':'eo','ㅕ':'yeo','ㅗ':'o','ㅛ':'yo',
+  'ㅜ':'u','ㅠ':'yu','ㅡ':'eu','ㅣ':'i',
+  'ㅐ':'ae','ㅒ':'yae','ㅔ':'e','ㅖ':'ye','ㅘ':'wa','ㅙ':'wae',
+  'ㅚ':'oe','ㅝ':'wo','ㅞ':'we','ㅟ':'wi','ㅢ':'ui'
+};
+// images/ 상대경로 (에디터를 Vercel 등 사이트와 같은 위치에 올려서 사용)
+const IMG_BASE = 'images/';
+let ghostImg = null;
+
+function setGrid(n){
+  GRID=n;
+  ['g10','g20','g26'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('g'+n).classList.add('active');
+  redraw();
+}
+
+function snap(v){
+  if(!document.getElementById('snapOn').checked) return Math.round(v);
+  return Math.round(v/GRID)*GRID;
+}
+
+function snapPt(p){
+  return { x: Math.max(0,Math.min(260,snap(p.x))), y: Math.max(0,Math.min(260,snap(p.y))) };
+}
+
+function updateGhost(){
+  const c=document.getElementById('jamoChar').value || '';
+  document.getElementById('ghost').textContent='';  // 폰트 ghost 끔 (이미지 사용)
+  const fn = IMG_FILE[c];
+  if(fn){
+    ghostImg = new Image();
+    ghostImg.onload = ()=> redraw();
+    ghostImg.onerror = ()=>{ ghostImg=null; document.getElementById('ghost').textContent=c; redraw(); };
+    ghostImg.src = IMG_BASE + fn + '.png';
+  } else {
+    ghostImg=null;
+    document.getElementById('ghost').textContent=c;  // 매핑 없으면 폰트
+  }
+  redraw();
+}
+
+function drawGrid(){
+  ctx.clearRect(0,0,260,260);
+  // ghost 이미지 (있으면)
+  if(ghostImg && ghostImg.complete && ghostImg.naturalWidth>0){
+    ctx.save(); ctx.globalAlpha=0.18; ctx.drawImage(ghostImg,0,0,260,260); ctx.restore();
+  }
+  // 격자 점
+  if(document.getElementById('snapOn').checked){
+    ctx.fillStyle='rgba(0,0,0,0.12)';
+    for(let x=0;x<=260;x+=GRID){
+      for(let y=0;y<=260;y+=GRID){
+        ctx.beginPath(); ctx.arc(x,y,1.3,0,Math.PI*2); ctx.fill();
+      }
+    }
+  }
+  // 중앙 십자선
+  ctx.strokeStyle='rgba(0,0,0,0.1)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(130,0); ctx.lineTo(130,260); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,130); ctx.lineTo(260,130); ctx.stroke();
+  ctx.strokeStyle='rgba(0,0,0,0.06)';
+  ctx.strokeRect(30,30,200,200);
+}
+
+function redraw(){
+  try {
+    drawGrid();
+    strokes.forEach((s,i)=>{
+      ctx.strokeStyle=COLORS[i%COLORS.length];
+      ctx.lineWidth=10; ctx.lineCap='round'; ctx.lineJoin='round';
+      ctx.beginPath();
+      s.pts.forEach((p,j)=> j===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+      ctx.stroke();
+      const a=s.pts[0], b=s.pts[s.pts.length-1];
+      ctx.fillStyle=COLORS[i%COLORS.length];
+      ctx.font='bold 15px sans-serif';
+      ctx.fillText((i+1), (a.x+b.x)/2+6, (a.y+b.y)/2-6);
+    });
+    if(drawing && startPt && curPt){
+      ctx.strokeStyle='rgba(200,75,49,0.5)';
+      ctx.lineWidth=10; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(startPt.x,startPt.y); ctx.lineTo(curPt.x,curPt.y); ctx.stroke();
+    }
+  } catch(err){ /* canvas unavailable; data still tracked */ }
+}
+
+function getPos(e){
+  const r=cv.getBoundingClientRect();
+  const sx=cv.width/r.width, sy=cv.height/r.height;
+  const cx = e.touches ? e.touches[0].clientX : e.clientX;
+  const cy = e.touches ? e.touches[0].clientY : e.clientY;
+  const raw = { x: (cx-r.left)*sx, y: (cy-r.top)*sy };
+  return snapPt(raw);
+}
+
+// 수평/수직 고정: 거의 가로면 y를 시작점에 맞추고, 거의 세로면 x를 맞춤
+function applyOrtho(a,b){
+  if(!document.getElementById('orthoOn').checked) return b;
+  const dx=Math.abs(b.x-a.x), dy=Math.abs(b.y-a.y);
+  // 한쪽이 다른쪽의 30% 이하로 작으면 그 축을 고정
+  if(dy>0 && dx/Math.max(dy,1) < 0.35) return { x:a.x, y:b.y }; // 세로획
+  if(dx>0 && dy/Math.max(dx,1) < 0.35) return { x:b.x, y:a.y }; // 가로획
+  return b;
+}
+
+function classifyDir(a,b){
+  const dx=b.x-a.x, dy=b.y-a.y;
+  const adx=Math.abs(dx), ady=Math.abs(dy);
+  if(adx<12 && ady<12) return 'dot';
+  if(adx>ady*1.6) return dx>0?'right':'left';
+  if(ady>adx*1.6) return dy>0?'down':'up';
+  if(dx>0&&dy>0) return 'diag-down-right';
+  if(dx<0&&dy>0) return 'diag-down-left';
+  if(dx>0&&dy<0) return 'diag-up-right';
+  return 'diag-up-left';
+}
+
+cv.addEventListener('mousedown',start);
+cv.addEventListener('mousemove',move);
+cv.addEventListener('mouseup',end);
+cv.addEventListener('mouseleave',end);
+cv.addEventListener('touchstart',e=>{e.preventDefault();start(e);},{passive:false});
+cv.addEventListener('touchmove',e=>{e.preventDefault();move(e);},{passive:false});
+cv.addEventListener('touchend',e=>{e.preventDefault();end(e);},{passive:false});
+
+function start(e){ drawing=true; startPt=getPos(e); curPt=startPt; }
+function move(e){ if(!drawing)return; curPt=applyOrtho(startPt,getPos(e)); redraw(); }
+function end(e){
+  if(!drawing)return;
+  drawing=false;
+  if(!startPt||!curPt) return;
+  const endP=applyOrtho(startPt,curPt);
+  const dist=Math.hypot(endP.x-startPt.x, endP.y-startPt.y);
+  if(dist<8){ startPt=null; curPt=null; redraw(); return; } // ignore tiny
+  const dir=classifyDir(startPt,endP);
+  // 데이터 먼저 기록 (그리기 에러와 무관하게)
+  strokes.push({dir, pts:[{x:startPt.x,y:startPt.y},{x:endP.x,y:endP.y}]});
+  startPt=null; curPt=null;
+  updateList(); updateOutput();
+  redraw();
+}
+
+function finishStroke(){ /* placeholder, kept for clarity */ }
+function undoStroke(){ strokes.pop(); redraw(); updateList(); updateOutput(); }
+function clearAll(){ strokes=[]; redraw(); updateList(); updateOutput(); }
+function delStroke(i){ strokes.splice(i,1); redraw(); updateList(); updateOutput(); }
+
+const DIR_LABEL={right:'→ 가로',left:'← 가로',down:'↓ 세로',up:'↑ 세로','diag-down-right':'↘ 삐침','diag-down-left':'↙ 삐침','diag-up-right':'↗ 삐침','diag-up-left':'↖ 삐침',dot:'· 점'};
+
+function updateList(){
+  const el=document.getElementById('strokesList');
+  if(strokes.length===0){ el.innerHTML='<div class="empty">아직 그린 획이 없어요</div>'; return; }
+  el.innerHTML='';
+  strokes.forEach((s,i)=>{
+    const row=document.createElement('div'); row.className='stroke-row';
+    const a=s.pts[0], b=s.pts[1];
+    row.innerHTML=`<div class="stroke-num" style="background:${COLORS[i%COLORS.length]}">${i+1}</div>
+      <div class="stroke-detail">(${a.x}, ${a.y}) → (${b.x}, ${b.y})<div class="stroke-dir">${DIR_LABEL[s.dir]||s.dir}</div></div>
+      <button class="del-btn" onclick="delStroke(${i})">삭제</button>`;
+    el.appendChild(row);
+  });
+  // legend
+  const lg=document.getElementById('legend'); lg.innerHTML='';
+  strokes.forEach((s,i)=>{
+    const sp=document.createElement('span');
+    sp.innerHTML=`<span class="dot" style="background:${COLORS[i%COLORS.length]}"></span>${i+1}획`;
+    lg.appendChild(sp);
+  });
+}
+
+function updateOutput(){
+  const jamo=document.getElementById('jamoChar').value||'?';
+  if(strokes.length===0){ document.getElementById('output').textContent='글자를 그리면 여기에 코드가 나와요'; return; }
+  const parts=strokes.map(s=>{
+    const pts=s.pts.map(p=>`{x:${p.x},y:${p.y}}`).join(',');
+    return `    {dir:'${s.dir}', pts:[${pts}]}`;
+  }).join(',\n');
+  const code=`'${jamo}': [\n${parts}\n  ]`;
+  document.getElementById('output').textContent=code;
+}
+
+function copyOutput(){
+  const txt=document.getElementById('output').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    alert('복사됐어요! 저(클로드)에게 붙여넣어 주세요 😊');
+  }).catch(()=>{
+    // fallback
+    const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    alert('복사됐어요!');
+  });
+}
+
+// init
+updateGhost(); drawGrid();
+</script>
+</body>
+</html>
